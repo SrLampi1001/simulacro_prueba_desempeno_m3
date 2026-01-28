@@ -58,3 +58,6 @@ i.user_icon{
 i.cart_icon{
     content: url("./../media/icons/cart_icon.png");
 }
+i.bag_icon{
+    content: url("./../media/icons/bag_icon.png");
+}
