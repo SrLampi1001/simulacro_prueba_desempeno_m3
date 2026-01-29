@@ -1,25 +1,18 @@
 //import Product_State from "./Product_State.js"; import Category from "./Category.js";
 export default class Product {
     static db = "http://localhost:3000";
-    //static product_states = new Map(); //Preload Product_states if a new State is created
-    constructor(id, name, category_id, price, stock, description, images, product_state) {
+    static _products = new Map();
+
+    constructor(id, name, category, price, stock, description, image) {
         this.id = id;
         this.name = name;
-        let validationCategory = Product.validation(category_id, 'categories');
-        validationCategory.then(async () => {
-            if (await validationCategory === true) {
-                this.category_id = category_id;
-            } else {
-                this.category_id = null;
-            }
-        })
+        this.category = category;
         this.price = price;
         this.stock = stock;
         this.description = description;
-        this.images = images;
+        this.image = image;
     }
-
-    static async getAllProduct() {
+    static async fetchAllProducts() {
         try {
             const response = await fetch(Product.db + "/products/", {
                 method: "GET",
@@ -28,11 +21,11 @@ export default class Product {
             if (!response.ok) {
                 return new Error(`HTTP Error! ${response.status}`);
             }
-            data = await response.json();
+            const data = await response.json();
             for(const p of data){
-                Product.products.set(p?.id, new Product(p?.id, p?.name, p?.category_id, p?.price, p?.stock, p?.description, p?.images, p?.product_state));
+                this._products.set(p?.id, new Product(p?.id, p?.name, p?.category, p?.price, p?.stock, p?.description, p?.image));
             }
-            return data.map(p => new Product(p?.id, p?.name, p?.category_id, p?.price, p?.stock, p?.description, p?.images, p?.product_state));
+            return data.map(p => new Product(p?.id, p?.name, p?.category, p?.price, p?.stock, p?.description, p?.image));
 
         } catch (error) {
             console.error("error", error)
@@ -41,7 +34,7 @@ export default class Product {
     }
 
     static async getProductById(idProduct) {
-        const product = Product.products.get(idProduct) ?? null; //Simple verification for product inside memory
+        const product = this._products.get(idProduct) ?? null; //Simple verification for product inside memory
         if(product !== null){
             return product
         }
@@ -54,7 +47,7 @@ export default class Product {
                 return new Error(`HTTP Error! ${response.status}`);
             }
             p = await response.json();
-            const product = new Product(p?.id, p?.name, p?.category_id, p?.price, p?.stock, p?.description, p?.images, p?.product_state);
+            const product = new Product(p?.id, p?.name, p?.category, p?.price, p?.stock, p?.description, p?.image);
             Product.products.set(product.id, product)
             return product;
 
@@ -76,17 +69,17 @@ export default class Product {
             }
             data = await response.json();
 
-            return data.map(p => new Product(p?.id, p?.name, p?.category_id, p?.price, p?.stock, p?.description, p?.images, p?.product_state));
+            return data.map(p => new Product(p?.id, p?.name, p?.category, p?.price, p?.stock, p?.description, p?.image));
 
         } catch (error) {
             console.error("error", error)
         }
     }
 
-    static async editProductById({name, category_id, price, stock, description, images, product_state}, idProduct) {
+    static async editProductById({name, category, price, stock, description, image}, idProduct) {
         const product = await Product.getProductById(idProduct);
-        product.name = name ?? product.name;    product.category_id = category_id ?? product.category_id;   product.price = price ?? product.price;
-        product.stock = stock ?? product.stock; product.description = description ?? product.description;   product.images = images ?? product.images;
+        product.name = name ?? product.name;    product.category = category ?? product.category;   product.price = price ?? product.price;
+        product.stock = stock ?? product.stock; product.description = description ?? product.description;   product.image = image ?? product.image;
         product.product_state = product_state ?? product.product_state;
         try {
             const response = await fetch(Product.db + "/products/" + idProduct, {
@@ -124,9 +117,6 @@ export default class Product {
     }
 
     static async validation(id, url) {
-        if(Product.categories.size === 0){
-
-        }
         if (url === 'categories') {
             if (id > 4 || id <= 0) {
                 return false;
@@ -153,10 +143,16 @@ export default class Product {
             return false;
         }
     }
-    static get categories(){
+/*     static get categories(){
         return Category.categories;
     }
     static get states(){
         return Product_State.states;
-    } 
+    }  */
+    static get products(){
+        return this._products;
+    }
+    static set products(products){
+        this._products = products
+    }
 }
