@@ -4,7 +4,7 @@ if(user !== null){
     if(user.role === "admin"){
         if (!regexAdmin.test(location.pathname)) location = "./admin"
     } else{
-        location = "./"
+        if (regexAdmin.test(location.pathname)) location = "./"
     }
 } else{
     location.pathname = "./log_in.html"
